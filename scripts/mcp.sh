@@ -19,13 +19,21 @@ start() {
     mkdir -p "$MCP_DIR"
     index_js="$ROOT_DIR/mcp/bridge/index.js"
     llm_functions_dir="$ROOT_DIR"
+    npm_package_dir="$ROOT_DIR/mcp/bridge"
     if _is_win; then
         index_js="$(cygpath -w "$index_js")"
         llm_functions_dir="$(cygpath -w "$llm_functions_dir")"
+        npm_package_dir="$(cygpath -w "$npm_package_dir")"
     fi
     echo "Start MCP Bridge server..."
-    echo "Install node dependencies..." > "$MCP_LOG_FILE"
-    npm install --prefix "$ROOT_DIR/mcp/bridge" 1>/dev/null 2>> "$MCP_LOG_FILE"
+    echo "Installing dependencies in: $npm_package_dir" > "$MCP_LOG_FILE"
+    if _is_win; then
+        pushd "$npm_package_dir" > NUL
+        npm install 1>/dev/null 2>> "$MCP_LOG_FILE"
+        popd > NUL
+    else
+        npm install --prefix "$npm_package_dir" 1>/dev/null 2>> "$MCP_LOG_FILE"
+    fi
     nohup node "$index_js" "$llm_functions_dir" >> "$MCP_LOG_FILE" 2>&1 &
     wait-for-server
     echo "Merge MCP tools into functions.json"
