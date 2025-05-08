@@ -25,7 +25,7 @@ start() {
     fi
     echo "Start MCP Bridge server..."
     echo "Install node dependencies..." > "$MCP_LOG_FILE"
-    npm install --prefix "$ROOT_DIR/mcp/bridge" 1>/dev/null 2>> "$MCP_LOG_FILE"
+    (cd "$ROOT_DIR/mcp/bridge" && npm install 1>/dev/null 2>> "$MCP_LOG_FILE")
     nohup node "$index_js" "$llm_functions_dir" >> "$MCP_LOG_FILE" 2>&1 &
     wait-for-server
     echo "Merge MCP tools into functions.json"
