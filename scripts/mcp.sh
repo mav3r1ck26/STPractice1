@@ -106,26 +106,46 @@ build-bin() {
 # @cmd Merge mcp tools into functions.json
 # @flag -S --save Save to functions.json
 merge-functions() {
-    result="$(jq --argjson json1 "$("$0" recovery-functions)" --argjson json2 "$(generate-declarations)" -n '($json1 + $json2)')"
-    if [[ -n "$argc_save" ]]; then
-        printf "%s" "$result" > "$FUNCTIONS_JSON_PATH"
+    if _is_win; then
+        # Windows (no process-substitution) → keep tmp-file strategy
+        local tmp="$(mktemp -d)"
+        trap "rm -rf \"$tmp\"" EXIT
+        "$0" recovery-functions   > "$tmp/1.json"
+        generate-declarations     > "$tmp/2.json"
+        jq -s '.[0] + .[1]' "$tmp/1.json" "$tmp/2.json" | _merge_functions_output
     else
-        printf "%s" "$result"
+        # Unix → no tmp files, no big argv
+        jq -s '.[0] + .[1]' \
+            <("$0" recovery-functions) \
+            <(generate-declarations)           | _merge_functions_output
+    fi
+}
+
+# Helper: decide whether to save or just echo
+_merge_functions_output() {
+    if [[ -n "$argc_save" ]]; then
+        cat - > "$FUNCTIONS_JSON_PATH"
+    else
+        cat -
     fi
 }
 
 # @cmd Unmerge mcp tools from functions.json
 # @flag -S --save Save to functions.json
 recovery-functions() {
-    functions="[]"
+    local temp_file="$(mktemp)"
+    trap "rm -f '$temp_file'" EXIT
+    
     if [[ -f  "$FUNCTIONS_JSON_PATH" ]]; then
-        functions="$(cat "$FUNCTIONS_JSON_PATH")"
-    fi
-    result="$(printf "%s" "$functions" | jq 'map(select(has("mcp") | not))')"
-    if [[ -n "$argc_save" ]]; then
-        printf "%s" "$result" > "$FUNCTIONS_JSON_PATH"
+        jq 'map(select(has("mcp") | not))' "$FUNCTIONS_JSON_PATH" > "$temp_file"
     else
-        printf "%s" "$result"
+        echo "[]" > "$temp_file"
+    fi
+    
+    if [[ -n "$argc_save" ]]; then
+        cp "$temp_file" "$FUNCTIONS_JSON_PATH"
+    else
+        cat "$temp_file"
     fi
 }
 
