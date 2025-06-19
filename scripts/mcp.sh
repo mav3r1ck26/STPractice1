@@ -106,7 +106,10 @@ build-bin() {
 # @cmd Merge mcp tools into functions.json
 # @flag -S --save Save to functions.json
 merge-functions() {
-    result="$(jq --argjson json1 "$("$0" recovery-functions)" --argjson json2 "$(generate-declarations)" -n '($json1 + $json2)')"
+    local tmpdir="$(mktemp -d)"
+    "$0" recovery-functions > "$tmpdir/1.json"
+    generate-declarations > "$tmpdir/2.json"
+    result="$(jq -s '.[0] + .[1]' "$tmpdir/1.json" "$tmpdir/2.json")"
     if [[ -n "$argc_save" ]]; then
         printf "%s" "$result" > "$FUNCTIONS_JSON_PATH"
     else
