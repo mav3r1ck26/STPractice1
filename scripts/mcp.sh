@@ -154,7 +154,43 @@ wait-for-server() {
 
 # @cmd Get the server pid
 get-server-pid() {
-    curl -fsSL http://localhost:$MCP_BRIDGE_PORT/pid 2>/dev/null || true
+    local max_retries=3
+    local retry=0
+    local timeout_connect=1
+    local timeout_max=3
+    
+    while [ $retry -lt $max_retries ]; do
+        # Try to get the PID with appropriate timeouts
+        local response=$(curl -fsSL \
+            --connect-timeout "$timeout_connect" \
+            --max-time "$timeout_max" \
+            "http://localhost:$MCP_BRIDGE_PORT/pid" 2>/dev/null)
+        
+        # Check if we got a valid PID (numeric value)
+        if [[ -n "$response" && "$response" =~ ^[0-9]+$ ]]; then
+            # Verify the process is actually running
+            if _is_win; then
+                # On Windows, check if process exists
+                if tasklist /FI "PID eq $response" 2>/dev/null | grep -q "$response"; then
+                    echo "$response"
+                    return 0
+                fi
+            else
+                # On Unix-like systems, check if process exists
+                if kill -0 "$response" 2>/dev/null; then
+                    echo "$response"
+                    return 0
+                fi
+            fi
+        fi
+        
+        ((retry++))
+        # Exponential backoff: 0.5s, 1s, 1.5s
+        [[ $retry -lt $max_retries ]] && sleep $(echo "scale=1; $retry * 0.5" | bc)
+    done
+    
+    # Return empty string if all retries failed
+    return 0
 }
 
 _ask_json_data() {
