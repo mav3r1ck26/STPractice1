@@ -145,7 +145,7 @@ generate-declarations() {
 # @cmd Wait for the mcp bridge server to ready
 wait-for-server() {
     while true; do
-        if [[ "$(curl -fsS http://localhost:$MCP_BRIDGE_PORT/health 2>&1)" == "OK" ]]; then
+        if [[ "$(curl -fsS --max-time 5 http://localhost:$MCP_BRIDGE_PORT/health 2>&1)" == "OK" ]]; then
             break;
         fi
         sleep 1
@@ -154,7 +154,7 @@ wait-for-server() {
 
 # @cmd Get the server pid
 get-server-pid() {
-    curl -fsSL http://localhost:$MCP_BRIDGE_PORT/pid 2>/dev/null || true
+    curl -fsS --max-time 5 http://localhost:$MCP_BRIDGE_PORT/pid 2>/dev/null || true
 }
 
 _ask_json_data() {
