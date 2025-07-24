@@ -204,6 +204,24 @@ Refer to [./agents/demo](https://github.com/sigoden/llm-functions/tree/main/agen
 - [mcp/server](https://github.com/sigoden/llm-functions/tree/main/mcp/server): Let LLM-Functions tools/agents be used through the Model Context Protocol. 
 - [mcp/bridge](https://github.com/sigoden/llm-functions/tree/main/mcp/bridge): Let external MCP tools be used by LLM-Functions.
 
+### MCP Tool Confirmation Guards
+
+By default, MCP tools will prompt for confirmation before execution when running in an interactive terminal. This provides a safety mechanism to review tool actions before they run. You can control this behavior with environment variables:
+
+- **Skip confirmation for specific tools**:
+  ```sh
+  # Skip confirmation for tools 'foo' and 'bar'
+  export LLM_MCP_SKIP_CONFIRM="foo|bar"
+  ```
+
+- **Force confirmation for specific tools**:
+  ```sh
+  # Always require confirmation for tools 'risky_tool' and 'dangerous_tool'
+  export LLM_MCP_NEED_CONFIRM="risky_tool|dangerous_tool"
+  ```
+
+These variables accept a regex pattern of tool names, allowing flexible control over which tools require confirmation.
+
 ## Documents
 
 - [Tool Guide](https://github.com/sigoden/llm-functions/blob/main/docs/tool.md)
