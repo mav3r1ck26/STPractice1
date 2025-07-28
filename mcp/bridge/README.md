@@ -53,3 +53,17 @@ argc mcp start
 > Run `argc mcp stop` to stop the bridge server, recover functions.json.
 
 > Run `argc mcp logs` to check the server's logs.
+
+### 3. Configure Tool Confirmation Guards
+
+MCP tools prompt for confirmation before execution in interactive terminals. Control this with environment variables:
+
+```sh
+# Skip confirmation for tools 'foo' and 'bar'
+export LLM_MCP_SKIP_CONFIRM="foo|bar"
+
+# Force confirmation for tools 'risky_tool' and 'dangerous_tool'
+export LLM_MCP_NEED_CONFIRM="risky_tool|dangerous_tool"
+```
+
+> These variables accept regex patterns of tool names, allowing flexible control over which tools require confirmation.
