@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -e
+
+# @describe Fetch contents of a URI using Exa API.
+# Use this when you need to get contents of a link, where you think is relevant info to be found.
+
+# @option --url! The query to search for.
+
+# @env EXA_API_KEY! The api key
+# @env LLM_OUTPUT=/dev/stdout The output path The output path
+
+main() {
+curl -X POST 'https://api.exa.ai/contents' \
+  -H "x-api-key: $EXA_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "urls": ["'"$argc_url"'"],
+    "text": true,
+    "type": "keyword",
+    "numResults": 1
+      }' | \
+    jq -r '.results[0].text' >> "$LLM_OUTPUT"
+}
+
+eval "$(argc --argc-eval "$0" "$@")"
