@@ -3,6 +3,7 @@ set -e
 
 # @describe Fetch contents of a URI using Exa API.
 # Use this when you need to get contents of a link, where you think relevant info is to be found.
+# If you have several sources for a subject to fetch, prioritize personal blogs, PDF files, official documentation, science articles.
 
 # @option --url! The query to search for.
 
